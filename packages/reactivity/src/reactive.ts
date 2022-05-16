@@ -10,11 +10,11 @@ const enum ReactiveFlags {
 }
 export const reactive = (target) =>{
     if(!isObject(target)) return
-
+    // target没有被代理前，target.xxx 不存在。如果target如果被代理过，target.xxx会直接进入代理的getter做判断，被代理过getter会返回true，这里直接return target，避免二次代理。
     if(target[ReactiveFlags.IS_REACTIVE]){
         return target
     }
-    // 相同的数据设置缓存，不用反复代理。
+    // 对同一个数据设置缓存，不用反复代理。
     let isExisitingProxy = reactiveMap.get(target)
     if(isExisitingProxy){
         return isExisitingProxy
