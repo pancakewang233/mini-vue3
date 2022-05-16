@@ -1,0 +1,16 @@
+{
+  "name": "mini-vue3",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "node srcipts/dev.js reactivity -f global"
+  },
+  "devDependencies": {
+    "esbuild": "^0.14.38",
+    "minimist": "^1.2.6"
+  },
+  "dependencies": {
+    "typescript": "^4.6.4"
+  }
+}
