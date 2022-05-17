@@ -29,8 +29,3 @@ export const reactive = (target) =>{
     reactiveMap.set(target, proxy)
     return proxy;
 }
-
-let obj = {name:'Mike', age: 15}
-const res = reactive(obj)
-
-console.log('fucking res', res)
