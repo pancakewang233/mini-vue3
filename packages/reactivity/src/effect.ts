@@ -1,5 +1,13 @@
 export let activeEffect = undefined;
 
+const cleanupEffect = (effect) =>{
+    const { deps } = effect;
+    for(let i = 0;i < deps.length; i++){
+        // 解除effect， 重新依赖收集。
+        deps[i].delete(effect)
+    }
+    effect.deps.length = 0;
+}
 class ReactiveEffect{
     // effect 默认是激活状态
     public parent = null;
@@ -19,6 +27,8 @@ class ReactiveEffect{
         try{
             this.parent = activeEffect;
             activeEffect = this;
+            //  这里需要将执行函数之前收集的内容清空
+            cleanupEffect(this)
             return this.fn()
         }finally{
             activeEffect = this.parent;
@@ -55,10 +65,13 @@ export const trigger = (target, type, key, value) =>{
     const depsMap = targetMap.get(target);
     if(!depsMap) return; // 触发值不在模板中使用
 
-    const effects = depsMap.get(key);
-    effects && effects.forEach(effect=>{
-        if(effect != activeEffect) effect.run()
-    })
+    let effects = depsMap.get(key);
+    if(effects){
+        effects = [...effects];
+        effects.forEach(effect=>{
+            if(effect != activeEffect) effect.run()
+        })
+    }
 }
 
 export const effect = (fn) =>{
