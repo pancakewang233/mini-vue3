@@ -13,7 +13,7 @@ class ReactiveEffect{
     public parent = null;
     public active = true;
     public deps = [];
-    constructor(public fn){
+    constructor(public fn, scheduler){
         this.fn = fn
     }
     // run 是 effect 执行函数
@@ -33,6 +33,14 @@ class ReactiveEffect{
         }finally{
             activeEffect = this.parent;
             this.parent = null;
+        }
+    }
+    stop(){
+        if(this.active){
+            this.active = false;
+            this.parent = null;
+            // 停止 effect 收集
+            cleanupEffect(this)
         }
     }
 }
@@ -69,14 +77,26 @@ export const trigger = (target, type, key, value) =>{
     if(effects){
         effects = [...effects];
         effects.forEach(effect=>{
-            if(effect != activeEffect) effect.run()
+            if(effect != activeEffect){
+                if(effect.scheduler){
+                    // 如果用户传入了调度函数，则用用户的，否则默认刷新视图。
+                    effect.scheduler()
+                }else{
+                    effect.run()
+                }
+            }
         })
     }
 }
 
-export const effect = (fn) =>{
+export const effect = (fn, options:any={}) =>{
     // 创建响应式 effect，fn根据状态变化重新执行，effect可以嵌套着写。
-    const _effect = new ReactiveEffect(fn);
+    const _effect = new ReactiveEffect(fn, options.scheduler);
     // 默认先执行一次
     _effect.run();
+    // 绑定 this 执行
+    const runner = _effect.run.bind(_effect);
+    // 将 effect 绑定到对应的runner属性上
+    runner._effect = _effect;
+    return runner;
 }
